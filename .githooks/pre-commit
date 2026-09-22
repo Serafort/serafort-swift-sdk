@@ -1,0 +1,31 @@
+#!/bin/sh
+# Portable pre-commit hook for the Serafort Swift SDK.
+#
+# This is a pure Swift Package Manager package with no npm/Node.js
+# involved, so Husky (an npm-ecosystem tool) does not apply here. This
+# plain POSIX shell script, wired in via `git config core.hooksPath
+# .githooks`, is the idiomatic dependency-free equivalent for an SPM repo.
+#
+# Enable it once per clone with:
+#   git config core.hooksPath .githooks
+#
+# Requires the Swift toolchain (Xcode / swift.org toolchain) to be
+# installed locally. On machines without it (e.g. Linux/Windows dev
+# boxes), this hook cannot run — that's fine, it's a best-effort local
+# check; CI (.github/workflows/ci.yml) is the authoritative gate.
+
+set -e
+
+if ! command -v swift >/dev/null 2>&1; then
+	echo "[pre-commit] Swift toolchain not found on PATH — skipping local build/test."
+	echo "[pre-commit] CI will still run 'swift build' and 'swift test' on this push/PR."
+	exit 0
+fi
+
+echo "[pre-commit] Running swift build..."
+swift build
+
+echo "[pre-commit] Running swift test..."
+swift test
+
+echo "[pre-commit] All checks passed."
